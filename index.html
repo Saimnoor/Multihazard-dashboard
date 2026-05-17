@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LIVE | Multi-Hazard EWS — Indus Basin & CPEC</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div id="app">
+
+<!-- ══════════ HEADER ══════════════════════════════════════════ -->
+<div id="hdr">
+  <div class="hdr-brand">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <polygon points="16,2 30,28 2,28" fill="none" stroke="#00c8ff" stroke-width="1.8"/>
+      <polygon points="16,9 24,24 8,24" fill="rgba(0,200,255,.1)" stroke="#00c8ff" stroke-width="1"/>
+      <circle cx="16" cy="20" r="2.6" fill="#ff1744">
+        <animate attributeName="r" values="2.6;5.5;2.6" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="16" cy="20" r="2.6" fill="#ff1744"/>
+    </svg>
+    <div>
+      <div class="brand-title">MULTI-HAZARD EWS</div>
+      <div class="brand-sub">INDUS BASIN &amp; CPEC CORRIDOR — PAKISTAN</div>
+    </div>
+  </div>
+
+  <div class="hdr-center">
+    <div class="live-badge"><div class="live-dot"></div>LIVE OPERATIONS</div>
+    <div class="hdr-feeds">
+      <div class="hfeed"><span class="hfeed-v" id="hf1">—</span>FIRES</div>
+      <div class="hfeed"><span class="hfeed-v" id="hf2">—</span>ALERTS</div>
+      <div class="hfeed"><span class="hfeed-v" id="hf3">—</span>EXPOSED</div>
+    </div>
+  </div>
+
+  <div class="hdr-right">
+    <div class="data-status" id="data-status">
+      <span class="ds-dot"></span>
+      <span id="ds-text">Loading data…</span>
+    </div>
+    <div class="clock-wrap">
+      <div class="clock-lbl">UTC</div>
+      <div class="clock-time" id="clk">00:00:00</div>
+      <div class="clock-date" id="clkd">—</div>
+    </div>
+    <div class="refresh-wrap">
+      <div class="clock-lbl">NEXT REFRESH</div>
+      <div class="ref-val" id="cd">30:00</div>
+      <div class="clock-lbl">AUTO</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TICKER ══════════════════════════════════════════ -->
+<div id="ticker">
+  <div class="ticker-tag">⚡ LIVE ALERTS</div>
+  <div class="ticker-track" id="ticker-track">
+    <div class="t-item"><span class="t-ok">● Connecting to Python data pipeline…</span></div>
+    <div class="t-item"><span class="t-ok">● Connecting to Python data pipeline…</span></div>
+  </div>
+</div>
+
+<!-- ══════════ KPI STRIP ═══════════════════════════════════════ -->
+<div id="kpi-strip">
+  <div class="kpi-card" style="--c:#ff1744;--cb:rgba(255,23,68,.12)">
+    <div class="kpi-top"><span class="kpi-lbl">🔥 FIRMS FIRES</span><span class="kpi-dot"></span></div>
+    <div class="kpi-val" id="k-fires">—</div>
+    <div class="kpi-sub">Pakistan · 24h NRT</div>
+    <div class="kpi-chip" id="k-fires-c">— CPEC zone</div>
+  </div>
+  <div class="kpi-card" style="--c:#4488dd;--cb:rgba(68,136,221,.12)">
+    <div class="kpi-top"><span class="kpi-lbl">🌧️ MAX RAINFALL</span><span class="kpi-dot"></span></div>
+    <div class="kpi-val" id="k-rain">—</div>
+    <div class="kpi-sub">GPM IMERG · mm/day</div>
+    <div class="kpi-chip" id="k-rain-a">— vs LTM</div>
+  </div>
+  <div class="kpi-card" style="--c:#00c8ff;--cb:rgba(0,200,255,.1)">
+    <div class="kpi-top"><span class="kpi-lbl">🌊 FLOOD ALERTS</span><span class="kpi-dot"></span></div>
+    <div class="kpi-val" id="k-flood">—</div>
+    <div class="kpi-sub">GloFAS · 7-day Indus</div>
+    <div class="kpi-chip" id="k-flood-s">— Critical/High</div>
+  </div>
+  <div class="kpi-card" style="--c:#ff6d00;--cb:rgba(255,109,0,.12)">
+    <div class="kpi-top"><span class="kpi-lbl">🏔️ LANDSLIDE</span><span class="kpi-dot"></span></div>
+    <div class="kpi-val" id="k-ls">—</div>
+    <div class="kpi-sub">LHASA Nowcast</div>
+    <div class="kpi-chip" id="k-ls-s">— Critical zones</div>
+  </div>
+  <div class="kpi-card" style="--c:#d500f9;--cb:rgba(213,0,249,.1)">
+    <div class="kpi-top"><span class="kpi-lbl">👥 POP EXPOSED</span><span class="kpi-dot"></span></div>
+    <div class="kpi-val" id="k-pop">—</div>
+    <div class="kpi-sub">WorldPop 2020</div>
+    <div class="kpi-chip" id="k-pop-s">— districts</div>
+  </div>
+  <div class="kpi-card" style="--c:#1de9b6;--cb:rgba(29,233,182,.1)">
+    <div class="kpi-top"><span class="kpi-lbl">⚡ HIGH RISK DIST.</span><span class="kpi-dot"></span></div>
+    <div class="kpi-val" id="k-risk">—</div>
+    <div class="kpi-sub">High/Critical ADM2</div>
+    <div class="kpi-chip" id="k-risk-s">— Critical</div>
+  </div>
+</div>
+
+<!-- ══════════ MAIN 3-COL ══════════════════════════════════════ -->
+<div id="main-grid">
+
+  <!-- LEFT SIDEBAR -->
+  <div id="left-panel">
+    <div class="panel-hdr">MAP LAYERS <span class="ptag" id="layer-ct">10 ACTIVE</span></div>
+    <div class="layer-list">
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#ff8c00"></div>CPEC Routes (OSM)</div><div class="sw"><input type="checkbox" id="lyr-cpec" checked onchange="toggleLyr('cpec')"/><div class="sw-t"></div></div></label>
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#ff8c00;opacity:.3"></div>CPEC Buffer Zone</div><div class="sw"><input type="checkbox" id="lyr-buffer" checked onchange="toggleLyr('buffer')"/><div class="sw-t"></div></div></label>
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#00c8ff"></div>District Risk (ADM2)</div><div class="sw"><input type="checkbox" id="lyr-dist" checked onchange="toggleLyr('dist')"/><div class="sw-t"></div></div></label>
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#ff1744"></div>🔥 Fire Hotspots</div><div class="sw"><input type="checkbox" id="lyr-fires" checked onchange="toggleLyr('fires')"/><div class="sw-t"></div></div></label>
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#4488dd"></div>🌧️ Rainfall (GPM)</div><div class="sw"><input type="checkbox" id="lyr-rain" checked onchange="toggleLyr('rain')"/><div class="sw-t"></div></div></label>
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#ff6d00"></div>🏔️ Landslide (LHASA)</div><div class="sw"><input type="checkbox" id="lyr-ls" checked onchange="toggleLyr('ls')"/><div class="sw-t"></div></div></label>
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#00e676"></div>🌊 GloFAS Reaches</div><div class="sw"><input type="checkbox" id="lyr-glofas" checked onchange="toggleLyr('glofas')"/><div class="sw-t"></div></div></label>
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#00c8ff;opacity:.5"></div>💧 Indus River</div><div class="sw"><input type="checkbox" id="lyr-river" checked onchange="toggleLyr('river')"/><div class="sw-t"></div></div></label>
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#d500f9"></div>👥 WorldPop Density</div><div class="sw"><input type="checkbox" id="lyr-pop" checked onchange="toggleLyr('pop')"/><div class="sw-t"></div></div></label>
+      <label class="lrow"><div class="ll"><div class="ldot" style="background:#1de9b6"></div>📐 SRTM DEM</div><div class="sw"><input type="checkbox" id="lyr-dem" checked onchange="toggleLyr('dem')"/><div class="sw-t"></div></div></label>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-lbl">CPEC BUFFER RADIUS</div>
+      <div class="ctrl-row">
+        <input type="range" class="ctrl-slider" id="buf-sl" min="5" max="30" value="10" oninput="document.getElementById('buf-v').textContent=this.value+' km'"/>
+        <span class="ctrl-val" id="buf-v">10 km</span>
+      </div>
+      <div class="ctrl-lbl">FLOOD ALERT THRESHOLD</div>
+      <div class="ctrl-row">
+        <input type="range" class="ctrl-slider" id="ltm-sl" min="100" max="150" value="120" oninput="document.getElementById('ltm-v').textContent=this.value+'%'"/>
+        <span class="ctrl-val" id="ltm-v">120%</span>
+      </div>
+      <div class="ctrl-lbl">NASA FIRMS KEY (OPTIONAL)</div>
+      <input type="text" class="api-inp" id="firms-key" placeholder="Paste MAP_KEY for live fire data…"/>
+      <button class="btn-refresh" id="rbtn" onclick="reloadAll()">↺ &nbsp;REFRESH DATA</button>
+    </div>
+
+    <div class="panel-hdr">PIPELINE LOG <span class="ptag" id="log-tag">IDLE</span></div>
+    <div id="proc-log"></div>
+  </div>
+
+  <!-- MAP -->
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div class="map-ov" id="m-countdown">NEXT: <b id="mcd">30:00</b></div>
+    <div class="map-ov" id="m-legend">
+      <div class="leg-title">HAZARD LEVEL</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#ff1744"></div>Critical</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#ff6d00"></div>High</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#ffd600"></div>Moderate</div>
+      <div class="leg-row"><div class="leg-dot" style="background:#00e676"></div>Low</div>
+      <div class="leg-divider"></div>
+      <div class="leg-row"><div class="leg-line" style="background:#ff8c00"></div>CPEC Route</div>
+      <div class="leg-row"><div class="leg-line" style="background:#00c8ff"></div>Indus River</div>
+    </div>
+    <div id="m-src">Sources: NASA FIRMS · Open-Meteo ERA5 · GloFAS · WorldPop 2020 · SRTM 30m · OSM Overpass · Python Pipeline</div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div id="right-panel">
+    <div class="panel-hdr">🚨 ALERT FEED <span class="ptag" id="alert-cnt">0 ACTIVE</span></div>
+    <div class="alert-feed" id="alert-feed">
+      <div class="acard ok"><div class="acard-name">Initialising…</div><div class="acard-meta">Fetching from Python pipeline</div></div>
+    </div>
+
+    <div class="mini-grid">
+      <div class="mini-cell"><div class="mini-val" id="ms1">—</div><div class="mini-lbl">High FRP Fires</div></div>
+      <div class="mini-cell"><div class="mini-val" id="ms2">—</div><div class="mini-lbl">CPEC Fires</div></div>
+      <div class="mini-cell"><div class="mini-val" id="ms3">—</div><div class="mini-lbl">LS in CPEC</div></div>
+      <div class="mini-cell"><div class="mini-val" id="ms4">—</div><div class="mini-lbl">At-Risk Pop</div></div>
+    </div>
+
+    <div class="panel-hdr">📈 GLOFAS 7-DAY FORECAST</div>
+    <div class="chart-pane">
+      <select class="reach-sel" id="reach-sel" onchange="drawGC()">
+        <option value="tarbela">Indus @ Tarbela</option>
+        <option value="attock">Indus @ Attock</option>
+        <option value="chashma">Indus @ Chashma</option>
+        <option value="kabul">Kabul @ Nowshera</option>
+        <option value="jhelum">Jhelum @ Mangla</option>
+        <option value="chenab">Chenab @ Marala</option>
+        <option value="sukkur">Indus @ Sukkur</option>
+      </select>
+      <div class="chart-canvas-wrap"><canvas id="gc"></canvas></div>
+    </div>
+  </div>
+
+</div><!-- /main-grid -->
+
+<!-- ══════════ BOTTOM TABS ══════════════════════════════════════ -->
+<div id="bottom-section">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="openTab('exposure',this)">📊 DISTRICT EXPOSURE</button>
+    <button class="tab-btn" onclick="openTab('landslide',this)">🏔️ LANDSLIDE</button>
+    <button class="tab-btn" onclick="openTab('rainfall',this)">🌧️ RAINFALL</button>
+    <button class="tab-btn" onclick="openTab('dem',this)">📐 DEM TERRAIN</button>
+    <button class="tab-btn" onclick="openTab('population',this)">👥 POPULATION</button>
+    <button class="tab-btn" onclick="openTab('brief',this)">📋 POLICY BRIEF</button>
+  </div>
+
+  <div id="tab-exposure" class="tab-panel active">
+    <table class="data-tbl"><thead><tr>
+      <th>District</th><th>Province</th><th>Population</th><th>CPEC</th>
+      <th>Rain mm</th><th>Anomaly%</th><th>Fires</th><th>In Buffer</th>
+      <th>Slope</th><th>Elev m</th><th>Flood</th><th>Landslide</th><th>Score</th><th>Level</th>
+    </tr></thead><tbody id="exp-tbody"></tbody></table>
+  </div>
+
+  <div id="tab-landslide" class="tab-panel">
+    <div class="chart-row">
+      <div class="chart-box"><canvas id="ls-sc"></canvas></div>
+      <div class="chart-box"><canvas id="ls-br"></canvas></div>
+    </div>
+  </div>
+
+  <div id="tab-rainfall" class="tab-panel">
+    <div class="chart-row">
+      <div class="chart-box" style="flex:2"><canvas id="rn-br"></canvas></div>
+      <div class="chart-box"><canvas id="rn-pi"></canvas></div>
+    </div>
+  </div>
+
+  <div id="tab-dem" class="tab-panel">
+    <div class="dem-stats-row">
+      <div class="dem-stat"><span class="dem-val" id="dem-min">—</span><span class="dem-lbl">MIN ELEV (m)</span></div>
+      <div class="dem-stat"><span class="dem-val" id="dem-max">—</span><span class="dem-lbl">MAX ELEV (m)</span></div>
+      <div class="dem-stat"><span class="dem-val" id="dem-mean">—</span><span class="dem-lbl">MEAN ELEV (m)</span></div>
+      <div class="dem-stat"><span class="dem-val" id="dem-hi">—</span><span class="dem-lbl">HIGH SLOPE PTS</span></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box" style="flex:3"><canvas id="dem-pr"></canvas></div>
+      <div class="chart-box"><canvas id="sl-do"></canvas></div>
+    </div>
+  </div>
+
+  <div id="tab-population" class="tab-panel">
+    <div class="chart-row">
+      <div class="chart-box" style="flex:2"><canvas id="pop-br"></canvas></div>
+      <div class="chart-box">
+        <div class="dem-stats-row" style="flex-direction:column;height:100%">
+          <div class="dem-stat"><span class="dem-val" id="pop-tot">—</span><span class="dem-lbl">TOTAL CPEC POP</span></div>
+          <div class="dem-stat"><span class="dem-val" id="pop-risk">—</span><span class="dem-lbl">HIGH/CRIT RISK POP</span></div>
+          <div class="dem-stat"><span class="dem-val" id="pop-dist">—</span><span class="dem-lbl">CPEC DISTRICTS</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-brief" class="tab-panel">
+    <div class="brief-box" id="brief-text">Loading policy brief from Python pipeline…</div>
+    <div class="dl-row">
+      <button class="btn-dl" onclick="dlFile(window._brief||'','CPEC_Brief.md','text/markdown')">⬇ Policy Brief (.md)</button>
+      <button class="btn-dl" onclick="dlCSV()">⬇ Exposure CSV</button>
+      <button class="btn-dl" onclick="dlFires()">⬇ Fires GeoJSON</button>
+      <button class="btn-dl" onclick="dlFlood()">⬇ Flood Alerts GeoJSON</button>
+      <button class="btn-dl" onclick="dlRain()">⬇ Rainfall GeoJSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ FOOTER ══════════════════════════════════════════ -->
+<div id="footer">
+  <span>MULTI-HAZARD EARLY WARNING SYSTEM — INDUS BASIN &amp; CPEC CORRIDOR, PAKISTAN &nbsp;|&nbsp; Supervisor: Ms. Aasaia Wahab — Dept. of Earth &amp; Environmental Sciences</span>
+  <span>Saim Noor (01-138231-010) · Areesha Anjum (01-138231-000) · M. Atteq Ur Rehman Khan (01-138231-000) · M. Nisar Yasin (01-138231-009) · Faizan Ahmad (01-138231-010)</span>
+</div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/map.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

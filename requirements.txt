@@ -1,0 +1,23 @@
+# ──────────────────────────────────────────────────────────────
+# CPEC Multi-Hazard EWS — Python Backend Dependencies
+# Install with: pip install -r requirements.txt
+# For Google Colab: !pip install -r requirements.txt
+# ──────────────────────────────────────────────────────────────
+
+# Core
+requests>=2.31.0
+numpy>=1.26.0
+
+# Copernicus CDS API — real GloFAS NetCDF download
+# Register at: https://cds.climate.copernicus.eu/user/register
+cdsapi>=0.6.1
+
+# NetCDF4 — parse GloFAS .nc files from CDS
+netCDF4>=1.6.5
+
+# HDF5 — parse GPM IMERG .HDF5 files from NASA GES DISC
+h5py>=3.10.0
+
+# Flask — local API server (optional, only for --serve mode)
+flask>=3.0.0
+flask-cors>=4.0.0
